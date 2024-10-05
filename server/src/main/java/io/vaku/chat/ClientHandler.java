@@ -10,8 +10,15 @@ public class ClientHandler {
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
-
     private String username;
+
+    public ClientHandler(Server server, Socket socket) throws IOException {
+        this.server = server;
+        this.socket = socket;
+        this.in = new DataInputStream(socket.getInputStream());
+        this.out = new DataOutputStream(socket.getOutputStream());
+        init();
+    }
 
     public String getUsername() {
         return username;
@@ -21,14 +28,10 @@ public class ClientHandler {
         this.username = username;
     }
 
-    public ClientHandler(Server server, Socket socket) throws IOException {
-        this.server = server;
-        this.socket = socket;
-        this.in = new DataInputStream(socket.getInputStream());
-        this.out = new DataOutputStream(socket.getOutputStream());
+    private void init() {
         new Thread(() -> {
             try {
-                System.out.println("Клиент подключился ");
+                System.out.println("Клиент подключился");
                 // цикл аутентификации
                 while (true) {
                     String message = in.readUTF();
@@ -41,7 +44,7 @@ public class ClientHandler {
                         if (message.startsWith("/auth ")) {
                             String[] elements = message.split(" ");
                             if (elements.length != 3) {
-                                sendMessage("Неверный формат команды /auth ");
+                                sendMessage("Неверный формат команды /auth");
                                 continue;
                             }
                             if (server.getAuthenticatedProvider()
@@ -50,11 +53,12 @@ public class ClientHandler {
                             }
                             continue;
                         }
+
                         // /reg login password username
                         if (message.startsWith("/reg ")) {
                             String[] elements = message.split(" ");
                             if (elements.length != 4) {
-                                sendMessage("Неверный формат команды /reg ");
+                                sendMessage("Неверный формат команды /reg");
                                 continue;
                             }
                             if (server.getAuthenticatedProvider()
@@ -68,6 +72,7 @@ public class ClientHandler {
                             "/auth login password или регистрацию командой /reg login password username");
                 }
                 System.out.println("Клиент " + username + " успешно прошел аутентификацию");
+
                 // цикл работы
                 while (true) {
                     String message = in.readUTF();
@@ -76,11 +81,38 @@ public class ClientHandler {
                             sendMessage("/exitok");
                             break;
                         }
+
+                        if (message.startsWith("/w")) {
+                            String[] arr = message.split(" ");
+                            if (arr.length < 3) {
+                                sendMessage("Invalid input, try again");
+                                continue;
+                            }
+                            String addresseeName = arr[1];
+                            if (server.isClientExists(addresseeName)) {
+                                server.sendMessageTo(
+                                        getUsername(),
+                                        addresseeName,
+                                        message.substring(message.indexOf(addresseeName) + addresseeName.length())
+                                );
+                            } else {
+                                sendMessage("Error: there is no client with username " + addresseeName);
+                                continue;
+                            }
+                        }
+
                         if (message.startsWith("/kick")) {
                             String[] arr = message.split(" ");
+                            String usernameToKick = arr[1];
                             AuthenticatedProvider authProvider = server.getAuthenticatedProvider();
                             if (arr.length == 2 && authProvider.isAdmin(username)) {
-                                server.kick(arr[1]);
+                                if (server.isClientExists(usernameToKick)) {
+                                    server.kick(usernameToKick);
+                                } else {
+                                    sendMessage("Error: there is no client with username " + usernameToKick);
+                                }
+                            } else {
+                                sendMessage("Invalid input, try again");
                             }
                         }
                     } else {

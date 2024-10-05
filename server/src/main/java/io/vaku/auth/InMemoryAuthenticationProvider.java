@@ -1,34 +1,26 @@
-package io.vaku.chat;
+package io.vaku.auth;
+
+import io.vaku.chat.ClientHandler;
+import io.vaku.chat.Server;
+import io.vaku.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.vaku.util.Utils.getUUID;
+
 public class InMemoryAuthenticationProvider implements AuthenticatedProvider {
-    private class User {
-        private String login;
-        private String password;
-        private String username;
-        private boolean isAdmin;
-
-        public User(String login, String password, String username, boolean isAdmin) {
-            this.login = login;
-            this.password = password;
-            this.username = username;
-            this.isAdmin = isAdmin;
-        }
-    }
-
     private Server server;
     private List<User> users;
 
     public InMemoryAuthenticationProvider(Server server) {
         this.server = server;
         this.users = new ArrayList<>();
-        this.users.add(new User("login1", "password1", "username1", false));
-        this.users.add(new User("qwe", "qwe", "qwe1", false));
-        this.users.add(new User("asd", "asd", "asd1", false));
-        this.users.add(new User("zxc", "zxc", "zxc1",false));
-        this.users.add(new User("admin", "admin", "administrator",true));
+        this.users.add(new User(getUUID(),"login1", "password1", "username1", false));
+        this.users.add(new User(getUUID(), "qwe", "qwe", "qwe1", false));
+        this.users.add(new User(getUUID(), "asd", "asd", "asd1", false));
+        this.users.add(new User(getUUID(), "zxc", "zxc", "zxc1",false));
+        this.users.add(new User(getUUID(), "admin", "admin", "administrator",true));
     }
 
     @Override
@@ -38,8 +30,8 @@ public class InMemoryAuthenticationProvider implements AuthenticatedProvider {
 
     private String getUsernameByLoginAndPassword(String login, String password) {
         for (User user : users) {
-            if (user.login.equals(login) && user.password.equals(password)) {
-                return user.username;
+            if (user.getLogin().equals(login) && user.getPassword().equals(password)) {
+                return user.getUsername();
             }
         }
 
@@ -69,7 +61,7 @@ public class InMemoryAuthenticationProvider implements AuthenticatedProvider {
 
     private boolean isLoginAlreadyExist(String login) {
         for (User user : users) {
-            if (user.login.equals(login)) {
+            if (user.getLogin().equals(login)) {
                 return true;
             }
         }
@@ -79,7 +71,7 @@ public class InMemoryAuthenticationProvider implements AuthenticatedProvider {
 
     private boolean isUsernameAlreadyExist(String username) {
         for (User user : users) {
-            if (user.username.equals(username)) {
+            if (user.getUsername().equals(username)) {
                 return true;
             }
         }
@@ -106,7 +98,7 @@ public class InMemoryAuthenticationProvider implements AuthenticatedProvider {
             return false;
         }
 
-        users.add(new User(login, password, username, false));
+        users.add(new User(getUUID(), login, password, username, false));
         clientHandler.setUsername(username);
         server.subscribe(clientHandler);
         clientHandler.sendMessage("/regok " + username);
@@ -117,7 +109,7 @@ public class InMemoryAuthenticationProvider implements AuthenticatedProvider {
     @Override
     public boolean isAdmin(String username) {
         for (User user : users) {
-            if (user.username.equals(username) && user.isAdmin) {
+            if (user.getUsername().equals(username) && user.isAdmin()) {
                 return true;
             }
         }

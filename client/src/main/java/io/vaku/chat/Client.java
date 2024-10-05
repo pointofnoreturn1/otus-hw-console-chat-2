@@ -7,16 +7,21 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class Client {
-    Socket socket;
-    DataInputStream in;
-    DataOutputStream out;
+    private Socket socket;
+    private DataInputStream in;
+    private DataOutputStream out;
+    private Scanner scanner;
 
     public Client() throws IOException {
-        Scanner scanner = new Scanner(System.in);
-        socket = new Socket("localhost", 8189);
-        in = new DataInputStream(socket.getInputStream());
-        out = new DataOutputStream(socket.getOutputStream());
+        this.scanner = new Scanner(System.in);
+        this.socket = new Socket("localhost", 8189);
+        this.in = new DataInputStream(socket.getInputStream());
+        this.out = new DataOutputStream(socket.getOutputStream());
+        init();
+        work();
+    }
 
+    private void init() {
         new Thread(() -> {
             try {
                 while (true) {
@@ -43,7 +48,9 @@ public class Client {
                 disconnect();
             }
         }).start();
+    }
 
+    private void work() throws IOException {
         while (true) {
             String message = scanner.nextLine();
             out.writeUTF(message);

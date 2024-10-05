@@ -42,17 +42,20 @@ public class InMemoryAuthenticationProvider implements AuthenticatedProvider {
                 return user.username;
             }
         }
+
         return null;
     }
 
     @Override
     public synchronized boolean authenticate(ClientHandler clientHandler, String login, String password) {
         String authName = getUsernameByLoginAndPassword(login, password);
+
         if (authName == null) {
             clientHandler.sendMessage("Некорректный логин/пароль");
             return false;
         }
-        if (server.isUsernameBusy(authName)) {
+
+        if (server.isClientExists(authName)) {
             clientHandler.sendMessage("Учетная запись уже занята");
             return false;
         }
@@ -60,6 +63,7 @@ public class InMemoryAuthenticationProvider implements AuthenticatedProvider {
         clientHandler.setUsername(authName);
         server.subscribe(clientHandler);
         clientHandler.sendMessage("/authok " + authName);
+
         return true;
     }
 
@@ -69,6 +73,7 @@ public class InMemoryAuthenticationProvider implements AuthenticatedProvider {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -78,6 +83,7 @@ public class InMemoryAuthenticationProvider implements AuthenticatedProvider {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -89,14 +95,17 @@ public class InMemoryAuthenticationProvider implements AuthenticatedProvider {
                     "имя пользователя 2+ символа не выполнены");
             return false;
         }
+
         if (isLoginAlreadyExist(login)) {
             clientHandler.sendMessage("Указанный логин уже занят");
             return false;
         }
+
         if (isUsernameAlreadyExist(username)) {
             clientHandler.sendMessage("Указанное имя пользователя уже занято");
             return false;
         }
+
         users.add(new User(login, password, username, false));
         clientHandler.setUsername(username);
         server.subscribe(clientHandler);

@@ -42,9 +42,19 @@ public class Server {
         clients.remove(clientHandler);
     }
 
-    public synchronized void broadcastMessage(String message) {
+    public synchronized void broadcastMessage(ClientHandler handler, String message) {
+        if (clients.contains(handler)) {
+            for (ClientHandler client : clients) {
+                client.sendMessage(message);
+            }
+        }
+    }
+
+    public synchronized void kick(String username) {
         for (ClientHandler client : clients) {
-            client.sendMessage(message);
+            if (client.getUsername().equals(username)) {
+                unsubscribe(client);
+            }
         }
     }
 
@@ -56,5 +66,4 @@ public class Server {
         }
         return false;
     }
-
 }

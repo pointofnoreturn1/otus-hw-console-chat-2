@@ -76,9 +76,15 @@ public class ClientHandler {
                             sendMessage("/exitok");
                             break;
                         }
-
+                        if (message.startsWith("/kick")) {
+                            String[] arr = message.split(" ");
+                            AuthenticatedProvider authProvider = server.getAuthenticatedProvider();
+                            if (arr.length == 2 && authProvider.isAdmin(username)) {
+                                server.kick(arr[1]);
+                            }
+                        }
                     } else {
-                        server.broadcastMessage(username + " : " + message);
+                        server.broadcastMessage(this, username + " : " + message);
                     }
                 }
             } catch (IOException e) {

@@ -1,4 +1,6 @@
-package io.vaku.chat;
+package io.vaku.auth;
+
+import io.vaku.chat.ClientHandler;
 
 public interface AuthenticatedProvider {
     void initialize();

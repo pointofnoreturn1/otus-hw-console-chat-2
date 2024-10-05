@@ -1,5 +1,8 @@
 package io.vaku.chat;
 
+import io.vaku.auth.AuthenticatedProvider;
+import io.vaku.auth.DBAuthenticationProvider;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,7 +17,7 @@ public class Server {
     public Server(int port) {
         this.port = port;
         this.clients = new HashMap<>();
-        authenticatedProvider = new InMemoryAuthenticationProvider(this);
+        authenticatedProvider = new DBAuthenticationProvider(this);
         authenticatedProvider.initialize();
     }
 
